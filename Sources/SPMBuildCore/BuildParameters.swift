@@ -131,16 +131,16 @@ public struct BuildParameters: Encodable {
     /// Destination triple.
     public var triple: Triple
 
-    /// The architectures to build for.
-    public var archs: [String]
-
     /// Extra build flags.
     public var flags: BuildFlags
 
-    public var pkgConfigDirectory: AbsolutePath?
+    /// The architectures to build for.
+    public var architectures: [String]?
 
     /// How many jobs should llbuild and the Swift compiler spawn
-    public var jobs: UInt32
+    public var workers: UInt32
+
+    public var pkgConfigDirectory: AbsolutePath?
 
     /// If should link the Swift stdlib statically.
     public var shouldLinkStaticSwiftStdlib: Bool
@@ -209,7 +209,7 @@ public struct BuildParameters: Encodable {
     public var isXcodeBuildSystemEnabled: Bool
 
     /// Extra arguments to pass when using xcbuild.
-    public var xcbuildFlags: [String]
+    public var xcbuildFlags: [String]?
 
     // Whether building for testability is enabled.
     public var enableTestability: Bool
@@ -230,11 +230,11 @@ public struct BuildParameters: Encodable {
         toolchain: Toolchain,
         hostTriple: Triple? = nil,
         destinationTriple: Triple? = nil,
-        archs: [String] = [],
         flags: BuildFlags,
-        xcbuildFlags: [String] = [],
+        xcbuildFlags: [String]? = nil, // FIXME: this seems out of place
+        architectures: [String]? = nil,
+        workers: UInt32 = UInt32(ProcessInfo.processInfo.activeProcessorCount),
         pkgConfigDirectory: AbsolutePath?,
-        jobs: UInt32 = UInt32(ProcessInfo.processInfo.activeProcessorCount),
         shouldLinkStaticSwiftStdlib: Bool = false,
         shouldEnableManifestCaching: Bool = false,
         canRenameEntrypointFunctionName: Bool = false,
@@ -262,11 +262,11 @@ public struct BuildParameters: Encodable {
         self._toolchain = _Toolchain(toolchain: toolchain)
         self.hostTriple = hostTriple ?? .getHostTriple(usingSwiftCompiler: toolchain.swiftCompilerPath)
         self.triple = triple
-        self.archs = archs
         self.flags = flags
+        self.architectures = architectures
+        self.workers = workers
         self.pkgConfigDirectory = pkgConfigDirectory
         self.xcbuildFlags = xcbuildFlags
-        self.jobs = jobs
         self.shouldLinkStaticSwiftStdlib = shouldLinkStaticSwiftStdlib
         self.shouldEnableManifestCaching = shouldEnableManifestCaching
         self.shouldCreateDylibForDynamicProducts = shouldCreateDylibForDynamicProducts
